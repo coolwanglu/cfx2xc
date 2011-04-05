@@ -43,7 +43,7 @@ SCRIPT_LINE_PATTERN=re.compile(r'(\d+)(?:-(\d+))?(?:,(\d+))?')
 
 # the list of output file names are based on http://fedoraproject.org/wiki/Artwork/EchoCursors/NamingSpec
 # and sd2xc was also referred to
-CURSORFX_CUSORNAMES={
+CURSORFX_NAMEMAP={
          0  : ('00standard_select', ('default'
                                     ,'arrow'
 
@@ -102,18 +102,18 @@ CURSORFX_CUSORNAMES={
                                 ,'pirate'
                                 ))
 
-        ,8  : ('08north_resize', ('n-resize'
+        ,8  : ('08north_resize', ('col-resize'
+                                 ,'sb_v_double_arrow'
+                                 ,'split_v'
+                                 ,'14fef782d02440884392942c11205230'
+
+                                 ,'n-resize'
                                  ,'top_side'
 
                                  ,'ns-resize'
                                  ,'v_double_arrow'
                                  ,'size_ver'
                                  ,'00008160000006810000408080010102'
-
-                                 ,'row-resize'
-                                 ,'sb_h_double_arrow'
-                                 ,'split_h'
-                                 ,'2870a09082c103050810ffdffffe0204'
 
                                  ,'top-tee'
                                  ,'top_tee'
@@ -132,12 +132,7 @@ CURSORFX_CUSORNAMES={
                                  ,'bottom_side'
                                  ))
 
-        ,10 : ('10west_resize', ('col-resize'
-                                ,'sb_v_double_arrow'
-                                ,'split_v'
-                                ,'14fef782d02440884392942c11205230'
-
-                                ,'ew-resize'
+        ,10 : ('10west_resize', ('ew-resize'
                                 ,'h_double_arrow'
                                 ,'size_hor'
                                 ,'028006030e0e7ebffc7f7070c0600140'
@@ -148,8 +143,13 @@ CURSORFX_CUSORNAMES={
                                 ,'left-tee'
                                 ,'left_tee'
 
+                                ,'row-resize'
+                                ,'sb_h_double_arrow'
+                                ,'split_h'
+                                ,'2870a09082c103050810ffdffffe0204'
+
                                 ,'w-resize'
-                                ,'left_size'
+                                ,'left_side'
                                 ))
         
         ,11 : ('11east_resize', ('e-resize'
@@ -401,7 +401,7 @@ size of script: %u\n'\
             cfg.close() 
 
             # output
-            (outfilename, links) = CURSORFX_CUSORNAMES.get(image_index, ('%02dunknown'%(image_index,),()))
+            (outfilename, links) = CURSORFX_NAMEMAP.get(image_index, ('%02dunknown'%(image_index,),()))
             os.system('xcursorgen "%s/img%d.cfg" "%s/%s"' % (CFG_DIR, image_index, OUTPUT_CURSOR_DIR, outfilename))
             for l in links:
                 os.symlink(outfilename, '%s/%s' % (OUTPUT_CURSOR_DIR, l))
