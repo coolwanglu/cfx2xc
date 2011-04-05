@@ -361,7 +361,9 @@ size of script: %u\n'\
             # parse script...
             # currently "repeat/end repeat" is not supported
             cfg = open('%s/img%d.cfg'%(CFG_DIR, image_index), 'w')
-            xcursor_size = max(frame_width, frame_height)
+            
+            #xcursor_size = max(frame_width, frame_height)
+            xcursor_size = 32
 
             if size_of_script > 0:
                 script_data = data[cur_pos+size_of_header_without_script:cur_pos+size_of_header_with_script].decode('utf-16le')[:-1].replace(';','\n').split()
@@ -418,7 +420,7 @@ Inherits=core
 """ % (theme_name, self.info[1]))
         index_theme_file.close()
 
-        os.system('tar -cf "%s.tar.gz" -C "%s" "%s"' % (theme_name, TMP_DIR, theme_name))
+        os.system('tar -caf "%s.tar.gz" -C "%s" "%s"' % (theme_name, TMP_DIR, theme_name))
 
         if REMOVE_TMP:
             shutil.rmtree(TMP_DIR)
