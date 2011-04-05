@@ -3,6 +3,8 @@
 """
 cfx2xc.py
 
+Homepage: http://code.google.com/p/cfx2xc/
+
 Convert a CursorFX theme to an X11 Cursor theme
 
 by Wang Lu <coolwanglu(a)gmail.com>
@@ -10,7 +12,7 @@ first version at 2011.04.04
 
 Based on the analysis from http://hi.baidu.com/fatfish888/blog/item/3592500392c27808738da516.html
 
-*** Requirements: python, python image library, xcursorgen ***
+*** Requirements: python, python image library, xcursorgen, tar ***
 """
 
 
@@ -22,13 +24,222 @@ import Image
 import os
 import re
 
-LOG_LEVEL=logging.DEBUG
+
+LOG_LEVEL=logging.INFO
 TMP_DIR='tmp_cfx2xc'
+REMOVE_TMP=True
+
+# Don't change anything below this line
+
 ORIGINAL_DIR=TMP_DIR+'/original'
-OUTPUT_DIR=TMP_DIR+'/cursors'
+OUTPUT_DIR=TMP_DIR
+OUTPUT_CURSOR_DIR=OUTPUT_DIR+'/cursors' # do not change this line, tarball needs 'cursors'
 SCRIPT_DIR=TMP_DIR+'/scripts'
 CFG_DIR=TMP_DIR+'/cfgs'
 SCRIPT_LINE_PATTERN=re.compile(r'(\d+)(?:-(\d+))?(?:,(\d+))?')
+
+# prepend the numbers to the filename such that they'll display in a nice order in a file manager
+
+# the list of output file names are based on http://fedoraproject.org/wiki/Artwork/EchoCursors/NamingSpec
+# and sd2xc was also referred to
+CURSORFX_CUSORNAMES={
+         0  : ('00standard_select', ('default'
+                                    ,'arrow'
+
+                                    ,'top-left-arrow'
+                                    ,'top_left_arrow'
+                                    ,'left_ptr'
+
+                                    ,'x-cursor'
+                                    ,'X_cursor'
+                                    ))
+
+        ,1  : ('01help_select', ('ask'
+                                ,'dnd-ask'
+
+                                ,'help'
+                                ,'question_arrow'
+                                ,'whats_this'
+                                ,'d9ce0ab605698f320427677b458ad60b'
+                                ))
+
+        ,2  : ('02working_in_background', ('progress'
+                                          ,'left_ptr_watch'
+                                          ,'08e8e1c95fe2fc01f976f1e063a24ccd'
+                                          ,'3ecb610c1bf2410f44200f48c40d3599'
+                                          ))
+
+        ,3  : ('03busy', ('wait'
+                         ,'watch'
+                         ,'0426c94ea35c87780ff01dc239897213'
+                         ))
+
+        ,4  : ('04precision_select', ('crosshair'
+                                     ,'cross'
+                                     ,'cross_reverse'
+                                     ,'tcross'
+                                     ))
+
+        ,5  : ('05text_select', ('text'
+                                ,'xterm'
+                                ,'ibeam'
+
+                                ,'vertical-text'
+                                ))
+
+        ,6  : ('06handwriting', ('pencil',
+                                ))
+
+        ,7  : ('07unavailable', ('no-drop'
+                                ,'dnd-none'
+                                ,'03b6e0fcb3499374a867c041f52298f0'
+
+                                ,'not-allowed'
+                                ,'crossed_circle'
+                                ,'forbidden'
+
+                                ,'pirate'
+                                ))
+
+        ,8  : ('08north_resize', ('n-resize'
+                                 ,'top_side'
+
+                                 ,'ns-resize'
+                                 ,'v_double_arrow'
+                                 ,'size_ver'
+                                 ,'00008160000006810000408080010102'
+
+                                 ,'row-resize'
+                                 ,'sb_h_double_arrow'
+                                 ,'split_h'
+                                 ,'2870a09082c103050810ffdffffe0204'
+
+                                 ,'top-tee'
+                                 ,'top_tee'
+
+                                 ,'up'
+                                 ,'sb_up_arrow'
+                                 ))
+
+        ,9  : ('09south_resize', ('bottom-tee'
+                                 ,'bottom_tee'
+
+                                 ,'down'
+                                 ,'sb_down_arrow'
+
+                                 ,'s-resize'
+                                 ,'bottom_side'
+                                 ))
+
+        ,10 : ('10west_resize', ('col-resize'
+                                ,'sb_v_double_arrow'
+                                ,'split_v'
+                                ,'14fef782d02440884392942c11205230'
+
+                                ,'ew-resize'
+                                ,'h_double_arrow'
+                                ,'size_hor'
+                                ,'028006030e0e7ebffc7f7070c0600140'
+
+                                ,'left'
+                                ,'sb_left_arrow'
+
+                                ,'left-tee'
+                                ,'left_tee'
+
+                                ,'w-resize'
+                                ,'left_size'
+                                ))
+        
+        ,11 : ('11east_resize', ('e-resize'
+                                ,'right_side'
+
+                                ,'right'
+                                ,'sb_right_arrow'
+
+                                ,'right-tee'
+                                ,'right_tee'
+                                ))
+
+        ,12 : ('12northwest_resize', ('nw-resize'
+                                     ,'top_left_corner'
+                                     ,'ul_angle'
+
+                                     ,'nwse-resize'
+                                     ,'fd_double_arrow'
+                                     ,'size_fdiag'
+                                     ,'c7088f0f3e6c8088236ef8e1e3e70000'
+                                     ))
+
+        ,13 : ('13southeast_resize', ('se-resize'
+                                     ,'bottom_right_corner'
+                                     ,'lr_angle'
+                                     ))
+
+        ,14 : ('14northeast_resize', ('ne-resize'
+                                     ,'top_right_corner'
+                                     ,'ur_angle'
+
+                                     ,'nesw-resize'
+                                     ,'bd_double_arrow'
+                                     ,'size_bdiag'
+                                     ,'fcf1c3c7cd4491d801f1e1c78f100000'
+                                     ))
+
+        ,15 : ('15southwest_resize', ('sw-resize'
+                                     ,'bottom_left_corner'
+                                     ,'ll_angle'
+                                     ))
+
+        ,16 : ('16move', ('cell'
+                         ,'plus'
+
+                         ,'all-scroll' 
+                         ,'fleur'
+                         ,'size_all'
+                         ))
+
+        ,17 : ('17alternate_select', ('top-right-arrow'
+                                     ,'right_ptr'
+
+                                     ,'up-arrow'
+                                     ,'center_ptr'
+                                     ,'up_arrow'
+                                     ))
+
+        ,18 : ('18hand', ('alias'
+                         ,'link'
+                         ,'dnd-link'
+                         ,'3085a0e285430894940527032f8b26df'
+                         ,'640fb0e74195791501fd1ed57b41487f'
+
+                         ,'copy'
+                         ,'dnd-copy'
+                         ,'1081e37283d90000800003c07f3ef6bf'
+                         ,'6407b0e94181790501fd1e167b474872'
+
+                         ,'left-hand'
+                         ,'hand1'
+                         ,'9d800788f1b08800ae810202380a0822'
+
+                         ,'move'
+                         ,'dnd-move'
+                         ,'4498f0e0c1937ffe01fd06f973665830'
+                         ,'9081237383d90e509aa00f00170e968f'
+
+                         ,'pointer'
+                         ,'hand2'
+                         ,'pointing_hand'
+                         ,'e29285e634086352946a0e7090d73106'
+
+                         ,'openhand'
+                         ,'a2a266d0498c3104214a47bd64ab0fc8'
+                         ,'b66166c04f8c3109214a4fbd64a50fc8'
+                         ,'hand'
+                         ))
+
+        ,19 : ('19button', ())
+}
 
 def try_mkdir(d):
     try:
@@ -44,6 +255,7 @@ class CursorXP():
         try_mkdir(TMP_DIR)
         try_mkdir(ORIGINAL_DIR)
         try_mkdir(OUTPUT_DIR)
+        try_mkdir(OUTPUT_CURSOR_DIR)
         try_mkdir(SCRIPT_DIR)
         try_mkdir(CFG_DIR)
 
@@ -65,8 +277,8 @@ Info size: %u\n\n'\
         data = zlib.decompress(data[self.header_size:])
         assert len(data) == self.data_size
 
-        self.info = data[:self.info_size].decode('utf-16le')
-        logging.info('Theme info: %s' % (','.join(self.info.split('\0')),))
+        self.info = data[:self.info_size].decode('utf-16le').split('\0')[:-1]
+        logging.info('Theme info: %s' % (','.join(self.info),))
 
         # start processing image data
         cur_pos = self.info_size
@@ -98,7 +310,7 @@ Info size: %u\n\n'\
             ,size_of_script
             ) = struct.unpack_from('<16I',data, cur_pos+struct.calcsize('<3I'))
           
-            logging.info('Image #%d:\n\
+            logging.debug('Image #%d:\n\
 type: %u\n\
 unknown1: %u\n\
 index: %u\n\
@@ -122,10 +334,12 @@ size of script2: %u\n'\
 
             # crop images
             img = Image.fromstring("RGBA", (image_width, image_height), data[cur_pos+size_of_header_with_script:cur_pos+size_of_header_and_image], "raw", "BGRA", 0, -1)
+            img.save('%s/img%d.png'%(ORIGINAL_DIR, image_index))
+
             frame_width = image_width / frame_count
             frame_height = image_height
             for i in range(frame_count):
-                img.crop((frame_width*(i-1),0,frame_width*i,image_height)).save('%s/img%s_%d.png'%(ORIGINAL_DIR,image_index,i))
+                img.crop((frame_width*(i-1),0,frame_width*i,image_height)).save('%s/img%d_%d.png'%(ORIGINAL_DIR,image_index,i))
 
             # parse script...
             # currently "repeat/end repeat" is not supported
@@ -135,7 +349,9 @@ size of script2: %u\n'\
             if size_of_script > 0:
                 script_data = data[cur_pos+size_of_header_without_script:cur_pos+size_of_header_with_script].decode('utf-16le')[:-1].replace(';','\n').split()
                 
-                open('%s/script%d'%(SCRIPT_DIR, image_index),'w').write('\n'.join(script_data))
+                script_file = open('%s/script%d'%(SCRIPT_DIR, image_index),'w')
+                script_file.write('\n'.join(script_data))
+                script_file.close()
 
                 last_interval = frame_interval
                 for l in script_data:
@@ -167,16 +383,39 @@ size of script2: %u\n'\
                     cfg.write('%d %d %d %s/img%s_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, i, frame_interval))
             cfg.close() 
 
-            os.system('xcursorgen "%s/img%d.cfg" "%s/cur%d"' % (CFG_DIR, image_index, OUTPUT_DIR, image_index))
+            # output
+            (outfilename, links) = CURSORFX_CUSORNAMES.get(image_index, ('%02dunknown'%(image_index,),()))
+            os.system('xcursorgen "%s/img%d.cfg" "%s/%s"' % (CFG_DIR, image_index, OUTPUT_CURSOR_DIR, outfilename))
+            for l in links:
+                os.symlink(outfilename, '%s/%s' % (OUTPUT_CURSOR_DIR, l))
             
             cur_pos += size_of_header_and_image
-         
 
+        # package
+        while len(self.info) < 2:
+            self.info.append('')
+        index_theme_file = open('%s/index.theme' % (OUTPUT_DIR,),'w')
+        index_theme_file.write("""[Icon Theme]
+Name=%s
+Comment=%s - converted by cfx2xc
+Example=default
+Inherits=core
+""" % (self.info[0], self.info[1]))
+        index_theme_file.close()
+
+        os.system('tar -cf "%s.tar.gz" -C %s index.theme cursors' % (fn[:-len('.CursorFX')], OUTPUT_DIR))
+
+        if REMOVE_TMP:
+            os.system('rm -rf %s' % (OUTPUT_DIR,))
 
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print 'Usage: ' + sys.argv[0] + ' <CursorXP theme file>'
+        sys.exit(-1)
+
+    if not sys.argv[1].endswith('.CursorFX'):
+        print 'Not a CursorFX file!'
         sys.exit(-1)
 
     CursorXP().convert(sys.argv[1])
