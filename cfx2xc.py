@@ -23,17 +23,17 @@ import logging
 import Image
 import os
 import re
+import shutil
 
 
-LOG_LEVEL=logging.INFO
-TMP_DIR='tmp_cfx2xc'
-REMOVE_TMP=True
+LOG_LEVEL=logging.DEBUG
+TMP_DIR='tmp_cfx2xc' # be careful about this name, all files inside will be cleared!
+REMOVE_TMP=False
 
 # Don't change anything below this line
 
+# OUTPUT_DIR will be TMP_DIR/<theme name>
 ORIGINAL_DIR=TMP_DIR+'/original'
-OUTPUT_DIR=TMP_DIR
-OUTPUT_CURSOR_DIR=OUTPUT_DIR+'/cursors' # do not change this line, tarball needs 'cursors'
 SCRIPT_DIR=TMP_DIR+'/scripts'
 CFG_DIR=TMP_DIR+'/cfgs'
 SCRIPT_LINE_PATTERN=re.compile(r'(\d+)(?:-(\d+))?(?:,(\d+))?')
@@ -248,16 +248,18 @@ def try_mkdir(d):
         pass
 
 class CursorXP():
-    def __init__ (self):
-        logging.basicConfig(level=LOG_LEVEL, format='%(message)s')
-
     def convert(self, fn):
+        assert fn.endswith('.CursorFX')
+
+        shutil.rmtree(TMP_DIR)
+
+        # OUTPUT_DIR and OUTPUT_CURSOR_DIR can will be created later, because we need to retrieve the theme_name first
         try_mkdir(TMP_DIR)
         try_mkdir(ORIGINAL_DIR)
-        try_mkdir(OUTPUT_DIR)
-        try_mkdir(OUTPUT_CURSOR_DIR)
         try_mkdir(SCRIPT_DIR)
         try_mkdir(CFG_DIR)
+
+        logging.basicConfig(filename='%s/log.txt'%(TMP_DIR,),level=LOG_LEVEL, format='%(message)s')
 
         data = open(fn).read()
         (self.version # maybe
@@ -279,6 +281,21 @@ Info size: %u\n\n'\
 
         self.info = data[:self.info_size].decode('utf-16le').split('\0')[:-1]
         logging.info('Theme info: %s' % (','.join(self.info),))
+        while len(self.info) < 2:
+            self.info.append('')
+
+        if self.info[0].strip() == '':
+            theme_name = fn[:-len('.CursorFX')]
+        else:
+            theme_name = self.info[0].strip()
+        theme_name = theme_name.replace(' ','')
+        theme_name = theme_name.replace(',','_')
+
+        OUTPUT_DIR = TMP_DIR + '/' + theme_name
+        OUTPUT_CURSOR_DIR = OUTPUT_DIR + '/cursors'
+
+        try_mkdir(OUTPUT_DIR)
+        try_mkdir(OUTPUT_CURSOR_DIR)
 
         # start processing image data
         cur_pos = self.info_size
@@ -339,7 +356,7 @@ size of script2: %u\n'\
             frame_width = image_width / frame_count
             frame_height = image_height
             for i in range(frame_count):
-                img.crop((frame_width*(i-1),0,frame_width*i,image_height)).save('%s/img%d_%d.png'%(ORIGINAL_DIR,image_index,i))
+                img.crop((frame_width*i,0,frame_width*(i+1),image_height)).save('%s/img%d_%d.png'%(ORIGINAL_DIR,image_index,i))
 
             # parse script...
             # currently "repeat/end repeat" is not supported
@@ -392,21 +409,19 @@ size of script2: %u\n'\
             cur_pos += size_of_header_and_image
 
         # package
-        while len(self.info) < 2:
-            self.info.append('')
         index_theme_file = open('%s/index.theme' % (OUTPUT_DIR,),'w')
         index_theme_file.write("""[Icon Theme]
 Name=%s
 Comment=%s - converted by cfx2xc
 Example=default
 Inherits=core
-""" % (self.info[0], self.info[1]))
+""" % (theme_name, self.info[1]))
         index_theme_file.close()
 
-        os.system('tar -cf "%s.tar.gz" -C %s index.theme cursors' % (fn[:-len('.CursorFX')], OUTPUT_DIR))
+        os.system('tar -cf "%s.tar.gz" -C "%s" "%s"' % (theme_name, TMP_DIR, theme_name))
 
         if REMOVE_TMP:
-            os.system('rm -rf %s' % (OUTPUT_DIR,))
+            shutil.rmtree(TMP_DIR)
 
 
 if __name__ == '__main__':
