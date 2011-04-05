@@ -29,6 +29,7 @@ import shutil
 LOG_LEVEL=logging.DEBUG
 TMP_DIR='tmp_cfx2xc' # be careful about this name, all files inside will be cleared!
 REMOVE_TMP=False
+INFINITE_INTERVAL=1000000
 
 # Don't change anything below this line
 
@@ -317,8 +318,8 @@ Info size: %u\n\n'\
             ,image_width
             ,image_height
             ,frame_interval
-            ,unknown4
             ,animation_type # 2 for loop, 3 for alternate animation, 0 for neither
+            ,unknown4
             ,mouse_x
             ,mouse_y
             ,size_of_header_with_script
@@ -339,9 +340,8 @@ frame_interval %u\n\
 unknown4: %u\n\
 animation type: %u\n\
 mouse position: (%u,%u)\n\
-size of script: %u\n\
-size of script2: %u\n'\
-% (image_index, pointer_type, unknown1, image_index, unknown2, unknown3, frame_count, image_width, image_height, frame_interval, unknown4, animation_type, mouse_x, mouse_y, size_of_script, size_of_header_without_script2))
+size of script: %u\n'\
+% (image_index, pointer_type, unknown1, image_index, unknown2, unknown3, frame_count, image_width, image_height, frame_interval, unknown4, animation_type, mouse_x, mouse_y, size_of_script))
 
 
             assert size_of_header_without_script == size_of_header_without_script2
@@ -397,7 +397,7 @@ size of script2: %u\n'\
                         pass
             else:
                 for i in range(frame_count):
-                    cfg.write('%d %d %d %s/img%s_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, i, frame_interval))
+                    cfg.write('%d %d %d %s/img%s_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, i, (frame_interval if (animation_type==2 or i < frame_count-1) else INFINITE_INTERVAL)))
             cfg.close() 
 
             # output
