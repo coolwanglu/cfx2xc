@@ -28,7 +28,7 @@ import shutil
 
 LOG_LEVEL=logging.DEBUG
 TMP_DIR='tmp_cfx2xc' # be careful about this name, all files inside will be cleared!
-REMOVE_TMP=False
+REMOVE_TMP=True
 INFINITE_INTERVAL=1000000
 
 # Don't change anything below this line
