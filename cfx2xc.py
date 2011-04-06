@@ -44,7 +44,7 @@ SCRIPT_LINE_PATTERN=re.compile(r'(\d+)(?:-(\d+))?(?:,(\d+))?')
 # the list of output file names are based on http://fedoraproject.org/wiki/Artwork/EchoCursors/NamingSpec
 # and sd2xc was also referred to
 CURSORFX_NAMEMAP={
-         0  : ('standard_select', ('default'
+         0  : ('00standard_select', ('default'
                                     ,'arrow'
 
                                     ,'top-left-arrow'
@@ -55,7 +55,7 @@ CURSORFX_NAMEMAP={
                                     ,'X_cursor'
                                     ))
 
-        ,1  : ('help_select', ('ask'
+        ,1  : ('01help_select', ('ask'
                                 ,'dnd-ask'
 
                                 ,'help'
@@ -64,34 +64,34 @@ CURSORFX_NAMEMAP={
                                 ,'d9ce0ab605698f320427677b458ad60b'
                                 ))
 
-        ,2  : ('working_in_background', ('progress'
+        ,2  : ('02working_in_background', ('progress'
                                           ,'left_ptr_watch'
                                           ,'08e8e1c95fe2fc01f976f1e063a24ccd'
                                           ,'3ecb610c1bf2410f44200f48c40d3599'
                                           ))
 
-        ,3  : ('busy', ('wait'
+        ,3  : ('03busy', ('wait'
                          ,'watch'
                          ,'0426c94ea35c87780ff01dc239897213'
                          ))
 
-        ,4  : ('precision_select', ('crosshair'
+        ,4  : ('04precision_select', ('crosshair'
                                      ,'cross'
                                      ,'cross_reverse'
                                      ,'tcross'
                                      ))
 
-        ,5  : ('text_select', ('text'
+        ,5  : ('05text_select', ('text'
                                 ,'xterm'
                                 ,'ibeam'
 
                                 ,'vertical-text'
                                 ))
 
-        ,6  : ('handwriting', ('pencil',
+        ,6  : ('06handwriting', ('pencil',
                                 ))
 
-        ,7  : ('unavailable', ('no-drop'
+        ,7  : ('07unavailable', ('no-drop'
                                 ,'dnd-none'
                                 ,'03b6e0fcb3499374a867c041f52298f0'
 
@@ -102,7 +102,7 @@ CURSORFX_NAMEMAP={
                                 ,'pirate'
                                 ))
 
-        ,8  : ('north_resize', ('col-resize'
+        ,8  : ('08north_resize', ('col-resize'
                                  ,'sb_v_double_arrow'
                                  ,'split_v'
                                  ,'14fef782d02440884392942c11205230'
@@ -122,7 +122,7 @@ CURSORFX_NAMEMAP={
                                  ,'sb_up_arrow'
                                  ))
 
-        ,9  : ('south_resize', ('bottom-tee'
+        ,9  : ('09south_resize', ('bottom-tee'
                                  ,'bottom_tee'
 
                                  ,'down'
@@ -132,7 +132,7 @@ CURSORFX_NAMEMAP={
                                  ,'bottom_side'
                                  ))
 
-        ,10 : ('west_resize', ('ew-resize'
+        ,10 : ('10west_resize', ('ew-resize'
                                 ,'h_double_arrow'
                                 ,'size_hor'
                                 ,'028006030e0e7ebffc7f7070c0600140'
@@ -152,7 +152,7 @@ CURSORFX_NAMEMAP={
                                 ,'left_side'
                                 ))
         
-        ,11 : ('east_resize', ('e-resize'
+        ,11 : ('11east_resize', ('e-resize'
                                 ,'right_side'
 
                                 ,'right'
@@ -162,7 +162,7 @@ CURSORFX_NAMEMAP={
                                 ,'right_tee'
                                 ))
 
-        ,12 : ('northwest_resize', ('nw-resize'
+        ,12 : ('12northwest_resize', ('nw-resize'
                                      ,'top_left_corner'
                                      ,'ul_angle'
 
@@ -172,12 +172,12 @@ CURSORFX_NAMEMAP={
                                      ,'c7088f0f3e6c8088236ef8e1e3e70000'
                                      ))
 
-        ,13 : ('southeast_resize', ('se-resize'
+        ,13 : ('13southeast_resize', ('se-resize'
                                      ,'bottom_right_corner'
                                      ,'lr_angle'
                                      ))
 
-        ,14 : ('northeast_resize', ('ne-resize'
+        ,14 : ('14northeast_resize', ('ne-resize'
                                      ,'top_right_corner'
                                      ,'ur_angle'
 
@@ -187,12 +187,12 @@ CURSORFX_NAMEMAP={
                                      ,'fcf1c3c7cd4491d801f1e1c78f100000'
                                      ))
 
-        ,15 : ('southwest_resize', ('sw-resize'
+        ,15 : ('15southwest_resize', ('sw-resize'
                                      ,'bottom_left_corner'
                                      ,'ll_angle'
                                      ))
 
-        ,16 : ('move', ('cell'
+        ,16 : ('16move', ('cell'
                          ,'plus'
 
                          ,'all-scroll' 
@@ -200,7 +200,7 @@ CURSORFX_NAMEMAP={
                          ,'size_all'
                          ))
 
-        ,17 : ('alternate_select', ('top-right-arrow'
+        ,17 : ('17alternate_select', ('top-right-arrow'
                                      ,'right_ptr'
 
                                      ,'up-arrow'
@@ -208,7 +208,7 @@ CURSORFX_NAMEMAP={
                                      ,'up_arrow'
                                      ))
 
-        ,18 : ('hand', ('alias'
+        ,18 : ('18hand', ('alias'
                          ,'link'
                          ,'dnd-link'
                          ,'3085a0e285430894940527032f8b26df'
@@ -239,7 +239,7 @@ CURSORFX_NAMEMAP={
                          ,'hand'
                          ))
 
-        ,19 : ('button', ())
+        ,19 : ('19button', ())
 }
 
 def try_mkdir(d):
