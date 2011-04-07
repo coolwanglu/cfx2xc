@@ -28,7 +28,7 @@ import shutil
 
 LOG_LEVEL=logging.DEBUG
 TMP_DIR='tmp_cfx2xc' # be careful about this name, all files inside will be cleared!
-REMOVE_TMP=True
+REMOVE_TMP=False
 INFINITE_INTERVAL=1000000
 
 # Don't change anything below this line
@@ -309,7 +309,7 @@ Info size: %u\n\n'\
             ,size_of_header_and_image) = struct.unpack_from('<3I', data, cur_pos)
 
             if pointer_type != 2:
-                logger.info('non-pointer image found, skipped')
+                logging.info('non-pointer image (%d) found, skipped' % (pointer_type,))
                 cur_pos += size_of_header_and_image
                 continue
             
@@ -409,7 +409,10 @@ size of script: %u\n'\
             (outfilename, links) = CURSORFX_NAMEMAP.get(image_index, ('%02dunknown'%(image_index,),()))
             os.system('xcursorgen "%s/img%d.cfg" "%s/%s"' % (CFG_DIR, image_index, OUTPUT_CURSOR_DIR, outfilename))
             for l in links:
-                os.symlink(outfilename, '%s/%s' % (OUTPUT_CURSOR_DIR, l))
+                try:
+                    os.symlink(outfilename, '%s/%s' % (OUTPUT_CURSOR_DIR, l))
+                except:
+                    logging.info('failed in creating symlink: %s -> %s' % (outfilename, l))
             
             cur_pos += size_of_header_and_image
 
