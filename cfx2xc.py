@@ -214,19 +214,9 @@ CURSORFX_NAMEMAP={
                          ,'3085a0e285430894940527032f8b26df'
                          ,'640fb0e74195791501fd1ed57b41487f'
 
-                         ,'copy'
-                         ,'dnd-copy'
-                         ,'1081e37283d90000800003c07f3ef6bf'
-                         ,'6407b0e94181790501fd1e167b474872'
-
                          ,'left-hand'
                          ,'hand1'
                          ,'9d800788f1b08800ae810202380a0822'
-
-                         ,'move'
-                         ,'dnd-move'
-                         ,'4498f0e0c1937ffe01fd06f973665830'
-                         ,'9081237383d90e509aa00f00170e968f'
 
                          ,'pointer'
                          ,'hand2'
@@ -239,7 +229,16 @@ CURSORFX_NAMEMAP={
                          ,'hand'
                          ))
 
-        ,19 : ('19button', ())
+        ,19 : ('19button', ('copy'
+                           ,'dnd-copy'
+                           ,'1081e37283d90000800003c07f3ef6bf'
+                           ,'6407b0e94181790501fd1e167b474872'
+
+                           ,'move'
+                           ,'dnd-move'
+                           ,'4498f0e0c1937ffe01fd06f973665830'
+                           ,'9081237383d90e509aa00f00170e968f'
+                           ))
 }
 
 def try_mkdir(d):
