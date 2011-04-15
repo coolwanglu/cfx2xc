@@ -334,7 +334,7 @@ Info size: %u\n\n'\
             
             (unknown1
             ,image_index
-            ,cursor_status # 1 for normal, 2 for pressed
+            ,cursor_status
             ,unknown3
             ,frame_count
             ,image_width
