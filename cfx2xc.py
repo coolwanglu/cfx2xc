@@ -27,17 +27,35 @@ import shutil
 
 
 LOG_LEVEL=logging.DEBUG
+
+PREPARE_TMP=True  # clear TMP_DIR before work
+REMOVE_TMP=False  # clear TMP_DIR after work
+
+AUTO_CROP=True # remove transparent border
+SCALE=1. # resize ratio
+RESIZE_FILTER=Image.ANTIALIAS 
+
+INFINITE_INTERVAL=1000000 # interval given to xcursorgen in order to stop animation
+
 TMP_DIR='tmp_cfx2xc' # be careful about this name, all files inside will be cleared!
-REMOVE_TMP=False
-INFINITE_INTERVAL=1000000
+LOG_FILENAME='log.txt'
+
 
 # Don't change anything below this line
 
 # OUTPUT_DIR will be TMP_DIR/<theme name>
+OUTPUT_BASE_DIR=TMP_DIR+'/target'
 ORIGINAL_DIR=TMP_DIR+'/original'
 SCRIPT_DIR=TMP_DIR+'/scripts'
 CFG_DIR=TMP_DIR+'/cfgs'
 SCRIPT_LINE_PATTERN=re.compile(r'(\d+)(?:-(\d+))?(?:,(\d+))?')
+
+CURSOR_STATUS_NORMAL = 1
+CURSOR_STATUS_PRESSED = 2
+
+ANIMATION_TYPE_NONE = 0
+ANIMATION_TYPE_LOOP = 2
+ANIMATION_TYPE_ALTERNATE = 3
 
 # prepend the numbers to the filename such that they'll display in a nice order in a file manager
 
@@ -251,18 +269,20 @@ class CursorFX():
     def convert(self, fn):
         assert fn.endswith('.CursorFX')
 
-        try:
-            shutil.rmtree(TMP_DIR)
-        except:
-            pass
+        if PREPARE_TMP:
+            try:
+                shutil.rmtree(TMP_DIR)
+            except:
+                pass
 
         # OUTPUT_DIR and OUTPUT_CURSOR_DIR can will be created later, because we need to retrieve the theme_name first
         try_mkdir(TMP_DIR)
+        try_mkdir(OUTPUT_BASE_DIR)
         try_mkdir(ORIGINAL_DIR)
         try_mkdir(SCRIPT_DIR)
         try_mkdir(CFG_DIR)
 
-        logging.basicConfig(filename='%s/log.txt'%(TMP_DIR,),level=LOG_LEVEL, format='%(message)s')
+        logging.basicConfig(filename='%s/%s'%(TMP_DIR, LOG_FILENAME),level=LOG_LEVEL, format='%(message)s')
 
         data = open(fn).read()
         (self.version # maybe
@@ -294,7 +314,7 @@ Info size: %u\n\n'\
         theme_name = theme_name.replace(' ','')
         theme_name = theme_name.replace(',','_')
 
-        OUTPUT_DIR = TMP_DIR + '/' + theme_name
+        OUTPUT_DIR = OUTPUT_BASE_DIR + '/' + theme_name
         OUTPUT_CURSOR_DIR = OUTPUT_DIR + '/cursors'
 
         try_mkdir(OUTPUT_DIR)
@@ -314,13 +334,13 @@ Info size: %u\n\n'\
             
             (unknown1
             ,image_index
-            ,unknown2
+            ,cursor_status # 1 for normal, 2 for pressed
             ,unknown3
             ,frame_count
             ,image_width
             ,image_height
             ,frame_interval
-            ,animation_type # 2 for loop, 3 for alternate animation, 0 for neither
+            ,animation_type
             ,unknown4
             ,mouse_x
             ,mouse_y
@@ -334,7 +354,7 @@ Info size: %u\n\n'\
 type: %u\n\
 unknown1: %u\n\
 index: %u\n\
-unknown2: %u\n\
+status: %u\n\
 unknown3: %u\n\
 frame count: %u\n\
 image size: %ux%u\n\
@@ -343,7 +363,7 @@ unknown4: %u\n\
 animation type: %u\n\
 mouse position: (%u,%u)\n\
 size of script: %u\n'\
-% (image_index, pointer_type, unknown1, image_index, unknown2, unknown3, frame_count, image_width, image_height, frame_interval, unknown4, animation_type, mouse_x, mouse_y, size_of_script))
+% (image_index, pointer_type, unknown1, image_index, cursor_status, unknown3, frame_count, image_width, image_height, frame_interval, unknown4, animation_type, mouse_x, mouse_y, size_of_script))
 
 
             assert size_of_header_without_script == size_of_header_without_script2
@@ -353,16 +373,45 @@ size of script: %u\n'\
 
             # crop images
             img = Image.fromstring("RGBA", (image_width, image_height), data[cur_pos+size_of_header_with_script:cur_pos+size_of_header_and_image], "raw", "BGRA", 0, -1)
-            img.save('%s/img%d.png'%(ORIGINAL_DIR, image_index))
+            img.save('%s/img%d-%d.png'%(ORIGINAL_DIR, image_index, cursor_status))
 
             frame_width = image_width / frame_count
             frame_height = image_height
+
+            img_list = []
+
             for i in range(frame_count):
-                img.crop((frame_width*i,0,frame_width*(i+1),image_height)).save('%s/img%d_%d.png'%(ORIGINAL_DIR,image_index,i))
+                img_list.append(img.crop((frame_width*i,0,frame_width*(i+1),image_height)))
+            
+            # crop transparent border
+            if AUTO_CROP:
+                bbox = [mouse_x, mouse_y, mouse_x+1, mouse_y+1]
+                for i in range(frame_count):
+                    tbbox = img_list[i].getbbox()
+                    if tbbox is not None:
+                        bbox[0] = min(bbox[0], tbbox[0])
+                        bbox[1] = min(bbox[1], tbbox[1])
+                        bbox[2] = max(bbox[2], tbbox[2])
+                        bbox[3] = max(bbox[3], tbbox[3])
+                for i in range(frame_count):
+                    img_list[i] = img_list[i].crop(bbox) 
+                mouse_x -= bbox[0]
+                mouse_y -= bbox[1]
+
+            # resize
+            for i in range(frame_count):
+                w,h = img_list[i].size
+                img_list[i] = img_list[i].resize((int(w*SCALE),int(h*SCALE)), RESIZE_FILTER)
+            mouse_x = int(mouse_x * SCALE)
+            mouse_y = int(mouse_y * SCALE)
+
+            # save
+            for i in range(frame_count):
+                img_list[i].save('%s/img%d-%d_%d.png'%(ORIGINAL_DIR, image_index, cursor_status, i))
 
             # parse script...
             # currently "repeat/end repeat" is not supported
-            cfg = open('%s/img%d.cfg'%(CFG_DIR, image_index), 'w')
+            cfg = open('%s/img%d-%d.cfg'%(CFG_DIR, image_index, cursor_status), 'w')
             
             #xcursor_size = max(frame_width, frame_height)
             xcursor_size = 32
@@ -393,20 +442,38 @@ size of script: %u\n'\
 
                         # note that the frame index in the script is 1-based
                         for i in range(start_frame, end_frame+step, step):
-                            cfg.write('%d %d %d %s/img%s_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, i-1, interval))
+                            cfg.write('%d %d %d %s/img%d-%d_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, cursor_status, i-1, interval))
 
                     except:
                         logging.info('Cannot parse script line:\n%s' % (l,))
                         raise
                         pass
             else:
-                for i in range(frame_count):
-                    cfg.write('%d %d %d %s/img%s_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, i, (frame_interval if (animation_type==2 or i < frame_count-1) else INFINITE_INTERVAL)))
+                if animation_type == ANIMATION_TYPE_NONE:
+                    for i in range(frame_count):
+                        cfg.write('%d %d %d %s/img%d-%d_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, cursor_status, i, (frame_interval if (i < frame_count-1) else INFINITE_INTERVAL)))
+                elif animation_type == ANIMATION_TYPE_LOOP:
+                    for i in range(frame_count):
+                        cfg.write('%d %d %d %s/img%d-%d_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, cursor_status, i, frame_interval))
+                elif animation_type == ANIMATION_TYPE_ALTERNATE:
+                    for i in range(frame_count):
+                        cfg.write('%d %d %d %s/img%d-%d_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, cursor_status, i, frame_interval))
+                    for i in range(frame_count-2, 0, -1):
+                        cfg.write('%d %d %d %s/img%d-%d_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, cursor-status, i, frame_interval))
+                else:
+                    logging.error('Unknown animation type: %d' % (animation_type,))
+                    
             cfg.close() 
 
             # output
             (outfilename, links) = CURSORFX_NAMEMAP.get(image_index, ('%02dunknown'%(image_index,),()))
-            os.system('xcursorgen "%s/img%d.cfg" "%s/%s"' % (CFG_DIR, image_index, OUTPUT_CURSOR_DIR, outfilename))
+
+            # dirty codes for pressed cursors
+            if cursor_status == CURSOR_STATUS_PRESSED:
+                outfilename += '_pressed'
+                links = ()
+
+            os.system('xcursorgen "%s/img%d-%d.cfg" "%s/%s"' % (CFG_DIR, image_index, cursor_status, OUTPUT_CURSOR_DIR, outfilename))
             for l in links:
                 try:
                     os.symlink(outfilename, '%s/%s' % (OUTPUT_CURSOR_DIR, l))
@@ -425,7 +492,7 @@ Inherits=core
 """ % (theme_name, self.info[1]))
         index_theme_file.close()
 
-        os.system('tar -caf "%s.tar.gz" -C "%s" "%s"' % (theme_name, TMP_DIR, theme_name))
+        os.system('tar -caf "%s.tar.gz" -C "%s" "%s"' % (theme_name, OUTPUT_BASE_DIR, theme_name))
 
         if REMOVE_TMP:
             shutil.rmtree(TMP_DIR)
