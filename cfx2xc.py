@@ -221,6 +221,11 @@ CURSORFX_NAMEMAP={
         ,17 : ('17alternate_select', ('top-right-arrow'
                                      ,'right_ptr'
 
+                                     ,'move'
+                                     ,'dnd-move'
+                                     ,'4498f0e0c1937ffe01fd06f973665830'
+                                     ,'9081237383d90e509aa00f00170e968f'
+
                                      ,'up-arrow'
                                      ,'center_ptr'
                                      ,'up_arrow'
@@ -251,11 +256,6 @@ CURSORFX_NAMEMAP={
                            ,'dnd-copy'
                            ,'1081e37283d90000800003c07f3ef6bf'
                            ,'6407b0e94181790501fd1e167b474872'
-
-                           ,'move'
-                           ,'dnd-move'
-                           ,'4498f0e0c1937ffe01fd06f973665830'
-                           ,'9081237383d90e509aa00f00170e968f'
                            ))
 }
 
