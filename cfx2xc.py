@@ -459,7 +459,7 @@ size of script: %u\n'\
                     for i in range(frame_count):
                         cfg.write('%d %d %d %s/img%d-%d_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, cursor_status, i, frame_interval))
                     for i in range(frame_count-2, 0, -1):
-                        cfg.write('%d %d %d %s/img%d-%d_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, cursor-status, i, frame_interval))
+                        cfg.write('%d %d %d %s/img%d-%d_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, cursor_status, i, frame_interval))
                 else:
                     logging.error('Unknown animation type: %d' % (animation_type,))
                     
