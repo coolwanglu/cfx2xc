@@ -483,14 +483,18 @@ size of script: %u\n'\
             cur_pos += size_of_header_and_image
 
         # package
-        index_theme_file = open('%s/index.theme' % (OUTPUT_DIR,),'w')
-        index_theme_file.write("""[Icon Theme]
+        themefilestr = """[Icon Theme]
 Name=%s
 Comment=%s - converted by cfx2xc
 Example=default
 Inherits=core
-""" % (theme_name, self.info[1]))
-        index_theme_file.close()
+""" % (theme_name, self.info[1])
+
+        with open('%s/index.theme' % (OUTPUT_DIR,),'w') as f:
+            f.write(themefilestr)
+
+        with open('%s/cursor.theme' % (OUTPUT_DIR,),'w') as f:
+            f.write(themefilestr)
 
         os.system('tar -caf "%s.tar.gz" -C "%s" "%s"' % (theme_name, OUTPUT_BASE_DIR, theme_name))
 
