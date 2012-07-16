@@ -416,6 +416,7 @@ size of script: %u\n'\
             #xcursor_size = max(frame_width, frame_height)
             xcursor_size = 32
 
+            script_parsed = False
             if size_of_script > 0:
                 script_data = data[cur_pos+size_of_header_without_script:cur_pos+size_of_header_with_script].decode('utf-16le')[:-1].replace(';','\n').split()
                 
@@ -424,8 +425,9 @@ size of script: %u\n'\
                 script_file.close()
 
                 last_interval = frame_interval
-                for l in script_data:
-                    try:
+
+                try:
+                    for l in script_data:
                         (start_frame, end_frame, interval) = SCRIPT_LINE_PATTERN.match(l).groups()
                         start_frame = int(start_frame)
                         if end_frame is None:
@@ -443,12 +445,16 @@ size of script: %u\n'\
                         # note that the frame index in the script is 1-based
                         for i in range(start_frame, end_frame+step, step):
                             cfg.write('%d %d %d %s/img%d-%d_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, cursor_status, i-1, interval))
+                    script_parsed = True
+                except:
+                    logging.info('Cannot parse script line:\n%s' % (l,))
+                    #raise
+                    pass
+            if not script_parsed:
+                if size_of_script > 0:
+                    logging.info('Fall back to the default script for img%d-%d' % (image_index, cursor_status))
+                    cfg.seek(0)
 
-                    except:
-                        logging.info('Cannot parse script line:\n%s' % (l,))
-                        raise
-                        pass
-            else:
                 if animation_type == ANIMATION_TYPE_NONE:
                     for i in range(frame_count):
                         cfg.write('%d %d %d %s/img%d-%d_%d.png %d\n' % (xcursor_size, mouse_x, mouse_y, ORIGINAL_DIR, image_index, cursor_status, i, (frame_interval if (i < frame_count-1) else INFINITE_INTERVAL)))
