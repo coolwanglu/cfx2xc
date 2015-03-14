@@ -8,8 +8,6 @@ This script can convert a CursorFX theme to an X11 cursor theme.
 
 Requirement: Python, Python Imaging Library, xcursorgen, tar
 
-Download the script [HERE](http://cfx2xc.googlecode.com/svn/trunk/cfx2xc.py)
-
 Features:
   * Extract the images, convert them into X11 cursor format. Animations are supported
   * Map the CursorFX cursors into X11 cursors
